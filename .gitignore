@@ -6,6 +6,7 @@
 # Local .terraform directories
 **/.terraform/*
 **/.terraform.d/*
+.terraform.lock.hcl
 
 # .tfstate files
 *.tfstate
@@ -49,3 +50,6 @@ terraform.tfvars
 
 # Exclude aws-iam-authenticator 
 aws-iam-authenticator
+
+# Exclude provider.tf since this will be overwritten by terragrunt
+provider.tf

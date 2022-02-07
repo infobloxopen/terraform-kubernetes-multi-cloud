@@ -1,11 +1,16 @@
+variable "cloud_provider" {
+  description = "Specify the target cloud provider (aws / microsoft / google)"
+  type        = string
+}
+
 variable "enable_alibaba" {
   description = "Enable / Disable Alibaba"
   type        = bool
   default     = false
 }
 
-variable "enable_amazon" {
-  description = "Enable / Disable Amazon"
+variable "enable_aws" {
+  description = "Enable / Disable Amazon AWS"
   type        = bool
   default     = false
 }
@@ -34,14 +39,12 @@ variable "enable_oracle" {
   default     = false
 }
 
-
 ## Kubernetes worker nodes
 variable "nodes" {
   description = "Worker nodes (e.g. `2`)"
   type        = number
   default     = 2
 }
-
 
 ## Alibaba Cloud
 variable "ali_access_key" {
@@ -62,6 +65,12 @@ variable "aws_profile" {
   description = "AWS cli profile (e.g. `default`)"
   type        = string
   default     = "default"
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-west-1"
 }
 
 
@@ -96,6 +105,12 @@ variable "az_client_secret" {
 
 variable "az_tenant_id" {
   description = "Azure Service Principal tenant"
+  type        = string
+  default     = ""
+}
+
+variable "az_subscription_id" {
+  description = "Azure Subscription ID"
   type        = string
   default     = ""
 }
