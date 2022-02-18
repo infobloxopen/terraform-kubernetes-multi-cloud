@@ -4,6 +4,7 @@
 module "microsoft" {
   count = 1
   enable_microsoft = true
+  kubeconfig = var.kubeconfig
   source  = "git::https://git@github.com/pjferrell/terraform-azurerm-k8s.git?ref=master"
   az_client_id = var.az_client_id
   az_client_secret = var.az_client_secret
@@ -17,7 +18,7 @@ module "microsoft" {
 resource "local_file" "kubeconfig-microsoft" {
   count = var.enable_microsoft ? 1 : 0
   content  = module.microsoft ? module.microsoft.kubeconfig_path_microsoft : ""
-  filename = "${path.module}/kubeconfig_microsoft"
+  filename = "/src/kubeconfig"
 
   depends_on = [module.microsoft]
 }

@@ -1,9 +1,11 @@
 locals {
   cloud_provider = get_env("TF_VAR_cloud_provider", "microsoft")
+  kubeconfig = get_env("TF_VAR_kubeconfig", "")
 }
 
 inputs = {  
   cloud_provider = local.cloud_provider
+  kubeconfig = local.kubeconfig
 
   module_sources = {
     "aws": "https://github.com/pjferrell//terraform-aws-k8s",
@@ -69,6 +71,7 @@ generate "main" {
 module "${local.cloud_provider}" {
   count = 1
   enable_${local.cloud_provider} = true
+  kubeconfig = var.kubeconfig
 %{ if local.cloud_provider == "alicloud" ~}
   source = "git::https://git@github.com/pjferrell/terraform-alicloud-k8s.git?ref=master"
 %{ endif ~}
@@ -93,7 +96,7 @@ module "${local.cloud_provider}" {
 resource "local_file" "kubeconfig-${local.cloud_provider}" {
   count = var.enable_${local.cloud_provider} ? 1 : 0
   content  = module.${local.cloud_provider} ? module.${local.cloud_provider}.kubeconfig_path_${local.cloud_provider} : ""
-  filename = "$${path.module}/kubeconfig_${local.cloud_provider}"
+  filename = "${local.kubeconfig}"
 
   depends_on = [module.${local.cloud_provider}]
 }

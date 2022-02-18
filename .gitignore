@@ -40,7 +40,7 @@ override.tf.json
 account.json
 
 # Exclude kubeconfig files
-kubeconfig_*
+kubeconfig*
 
 # Exclude generated configmap for eks
 aws_config_map_aws_auth

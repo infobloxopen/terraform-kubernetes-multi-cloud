@@ -3,6 +3,11 @@ variable "cloud_provider" {
   type        = string
 }
 
+variable "kubeconfig" {
+  description = "Specify the location of the kubeconfig"
+  type        = string
+}
+
 variable "enable_alibaba" {
   description = "Enable / Disable Alibaba"
   type        = bool
