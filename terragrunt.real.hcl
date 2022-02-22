@@ -29,7 +29,7 @@ provider "alicloud" {
 %{ endif ~}
 %{ if local.cloud_provider == "aws" ~}
 provider "aws" {
-  region = var.region
+  region = var.aws_region
   # credentials will read from ~/.aws
 }
 %{ endif ~}
@@ -100,6 +100,11 @@ resource "local_file" "kubeconfig-${local.cloud_provider}" {
 
   depends_on = [module.${local.cloud_provider}]
 }
+
+output "kubeconfig" {
+  value = "${local.kubeconfig}"
+}
+
 EOT
 }
 
