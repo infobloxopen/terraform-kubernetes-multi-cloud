@@ -1,5 +1,5 @@
 locals {
-  cloud_provider = get_env("TF_VAR_cloud_provider", "microsoft")
+  cloud_provider = get_env("TF_VAR_cloud_provider", "azure")
   kubeconfig = get_env("TF_VAR_kubeconfig", "")
 }
 
@@ -20,6 +20,14 @@ generate "provider" {
   path = "provider.tf"
   if_exists = "overwrite"
   contents = <<EOT
+provider "kubernetes" {
+  config_path = var.kubeconfig
+
+  experiments {
+    manifest_resource = true
+  }
+}
+
 %{ if local.cloud_provider == "alicloud" ~}
 provider "alicloud" {
   access_key = var.ali_access_key
@@ -33,14 +41,14 @@ provider "aws" {
   # credentials will read from ~/.aws
 }
 %{ endif ~}
-%{ if local.cloud_provider == "google" ~}
+%{ if local.cloud_provider == "gcp" ~}
 provider "google" {
   credentials = file("account.json")
   project     = var.gcp_project
   region      = var.region
 }
 %{ endif ~}
-%{ if local.cloud_provider == "microsoft" ~}
+%{ if local.cloud_provider == "azure" ~}
 provider "azurerm" {
   client_id = var.az_client_id
   client_secret = var.az_client_secret
@@ -67,10 +75,8 @@ generate "main" {
   if_exists = "overwrite"
   contents = <<EOT
 
-# Provider for ${local.cloud_provider}
+# Provider for 
 module "${local.cloud_provider}" {
-  count = 1
-  enable_${local.cloud_provider} = true
   kubeconfig = var.kubeconfig
 %{ if local.cloud_provider == "alicloud" ~}
   source = "git::https://git@github.com/pjferrell/terraform-alicloud-k8s.git?ref=master"
@@ -78,10 +84,10 @@ module "${local.cloud_provider}" {
 %{ if local.cloud_provider == "aws" ~}
   source = "git::https://git@github.com/pjferrell/terraform-aws-k8s.git?ref=master"
 %{ endif ~}
-%{ if local.cloud_provider == "google" ~}
+%{ if local.cloud_provider == "gcp" ~}
   source = "git::https://git@github.com/pjferrell/terraform-google-k8s.git?ref=master"
 %{ endif ~}
-%{ if local.cloud_provider == "microsoft" ~}
+%{ if local.cloud_provider == "azure" ~}
   source  = "git::https://git@github.com/pjferrell/terraform-azurerm-k8s.git?ref=master"
   az_client_id = var.az_client_id
   az_client_secret = var.az_client_secret
@@ -90,23 +96,18 @@ module "${local.cloud_provider}" {
 %{ endif ~}
 }
 
-# Kubeconfig files in main module directory
-# (will be created in submodule directories, too)
-
-resource "local_file" "kubeconfig-${local.cloud_provider}" {
-  count = var.enable_${local.cloud_provider} ? 1 : 0
-  content  = module.${local.cloud_provider} ? module.${local.cloud_provider}.kubeconfig_path_${local.cloud_provider} : ""
-  filename = "${local.kubeconfig}"
-
-  depends_on = [module.${local.cloud_provider}]
-}
+# Kubeconfig files are expected to be output by the provider module
 
 output "kubeconfig" {
-  value = "${local.kubeconfig}"
+  value = "module.${local.cloud_provider}.kubeconfig_path"
 }
 
 output "provider" {
   value = "${local.cloud_provider}"
+}
+
+output "provider_info" {
+  value = jsonencode(module.${local.cloud_provider}.provider_info)
 }
 
 EOT

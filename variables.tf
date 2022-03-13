@@ -1,47 +1,15 @@
 variable "cloud_provider" {
-  description = "Specify the target cloud provider (aws / microsoft / google)"
+  description = "Specify the target cloud provider (aws / azure / gcp)"
   type        = string
+  validation {
+      condition     = contains(["aws", "azure", "gcp"], var.cloud_provider)
+      error_message = "Valid values for var: cloud_provider are (aws, azure, gcp)."
+  } 
 }
 
 variable "kubeconfig" {
   description = "Specify the location of the kubeconfig"
   type        = string
-}
-
-variable "enable_alibaba" {
-  description = "Enable / Disable Alibaba"
-  type        = bool
-  default     = false
-}
-
-variable "enable_aws" {
-  description = "Enable / Disable Amazon AWS"
-  type        = bool
-  default     = false
-}
-
-variable "enable_digitalocean" {
-  description = "Enable / Disable DigitalOcean"
-  type        = bool
-  default     = false
-}
-
-variable "enable_google" {
-  description = "Enable / Disable Google"
-  type        = bool
-  default     = false
-}
-
-variable "enable_microsoft" {
-  description = "Enable / Disable Microsoft"
-  type        = bool
-  default     = false
-}
-
-variable "enable_oracle" {
-  description = "Enable / Disable Oracle"
-  type        = bool
-  default     = false
 }
 
 ## Kubernetes worker nodes
