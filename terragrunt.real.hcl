@@ -105,6 +105,10 @@ output "kubeconfig" {
   value = "${local.kubeconfig}"
 }
 
+output "provider" {
+  value = "${local.cloud_provider}"
+}
+
 EOT
 }
 
