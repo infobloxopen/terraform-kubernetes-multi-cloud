@@ -1,0 +1,6 @@
+{
+    "aws": "git::https://github.com/infobloxopen/terraform-aws-k8s//",
+    "azure": "git::https://github.com/infobloxopen/terraform-azurerm-k8s//",
+    "google": "git::https://github.com/infobloxopen/terraform-google-k8s//",
+    "alicloud": "git::https://github.com/infobloxopen/terraform-alicloud-k8s//"
+}

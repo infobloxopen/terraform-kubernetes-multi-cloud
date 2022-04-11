@@ -1,19 +1,30 @@
 locals {
   cloud_provider = get_env("TF_VAR_cloud_provider", "azure")
   kubeconfig = get_env("TF_VAR_kubeconfig", "")
+
+  module_sources = jsondecode(get_env("TF_VAR_module_sources", file("${get_terragrunt_dir()}/module_sources.json")))
+  source = local.module_sources[coalesce(local.cloud_provider, "azure")]
 }
 
 inputs = {  
   cloud_provider = local.cloud_provider
   kubeconfig = local.kubeconfig
+}
 
-  module_sources = {
-    "aws": "https://github.com/pjferrell//terraform-aws-k8s",
-    "azurerm": "https://github.com/pjferrell/terraform-azurerm-k8s",
-    "google": "https://github.com/pjferrell/terraform-google-k8s",
-    "alicloud": "https://github.com/pjferrell/terraform-alicloud-k8s",
+terraform {
+  after_hook "generate_provider_module_after_download" {
+    commands = ["init"]
+    execute  = ["${get_terragrunt_dir()}/generate_provider_module.sh", "${local.source}"]
+  }
+
+  before_hook "generate_provider_module_before_run" {
+    commands = get_terraform_commands_that_need_vars()
+    execute = ["${get_terragrunt_dir()}/generate_provider_module.sh", "${local.source}"]
   }
 }
+
+
+
 
 # this generates a provider.tf file in the local directory based on the selected cloud provider
 generate "provider" {
@@ -35,28 +46,6 @@ provider "alicloud" {
   region     = var.ali_region
 }
 %{ endif ~}
-%{ if local.cloud_provider == "aws" ~}
-provider "aws" {
-  region = var.aws_region
-  # credentials will read from ~/.aws
-}
-%{ endif ~}
-%{ if local.cloud_provider == "gcp" ~}
-provider "google" {
-  credentials = file("account.json")
-  project     = var.gcp_project
-  region      = var.region
-}
-%{ endif ~}
-%{ if local.cloud_provider == "azure" ~}
-provider "azurerm" {
-  client_id = var.az_client_id
-  client_secret = var.az_client_secret
-  tenant_id = var.az_tenant_id
-  subscription_id = var.az_subscription_id
-  features {}
-}
-%{ endif ~}
 %{ if local.cloud_provider == "oracle" ~}
 provider "oci" {
   tenancy_ocid     = var.oci_tenancy_ocid
@@ -75,31 +64,13 @@ generate "main" {
   if_exists = "overwrite"
   contents = <<EOT
 
-# Provider for 
-module "${local.cloud_provider}" {
-  kubeconfig = var.kubeconfig
-%{ if local.cloud_provider == "alicloud" ~}
-  source = "git::https://git@github.com/pjferrell/terraform-alicloud-k8s.git?ref=master"
-%{ endif ~}
-%{ if local.cloud_provider == "aws" ~}
-  source = "git::https://git@github.com/pjferrell/terraform-aws-k8s.git?ref=master"
-%{ endif ~}
-%{ if local.cloud_provider == "gcp" ~}
-  source = "git::https://git@github.com/pjferrell/terraform-google-k8s.git?ref=master"
-%{ endif ~}
-%{ if local.cloud_provider == "azure" ~}
-  source  = "git::https://git@github.com/pjferrell/terraform-azurerm-k8s.git?ref=master"
-  az_client_id = var.az_client_id
-  az_client_secret = var.az_client_secret
-  az_tenant_id = var.az_tenant_id
-  az_subscription_id = var.az_subscription_id
-%{ endif ~}
-}
+# module for ${local.cloud_provider}
+
 
 # Kubeconfig files are expected to be output by the provider module
 
 output "kubeconfig" {
-  value = "module.${local.cloud_provider}.kubeconfig_path"
+  value = "module.provider.kubeconfig_path"
 }
 
 output "provider" {
@@ -107,7 +78,7 @@ output "provider" {
 }
 
 output "provider_info" {
-  value = jsonencode(module.${local.cloud_provider}.provider_info)
+  value = jsonencode(module.provider.provider_info)
 }
 
 EOT
