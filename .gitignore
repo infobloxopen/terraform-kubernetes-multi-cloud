@@ -53,3 +53,4 @@ aws-iam-authenticator
 
 # Exclude provider.tf since this will be overwritten by terragrunt
 provider.tf
+variables_imported.tf
