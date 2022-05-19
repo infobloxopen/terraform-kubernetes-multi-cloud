@@ -31,6 +31,10 @@ generate "provider" {
   path = "provider.tf"
   if_exists = "overwrite"
   contents = <<EOT
+terraform {
+  experiments = [module_variable_optional_attrs]
+}
+
 provider "kubernetes" {
   config_path = var.kubeconfig
 
