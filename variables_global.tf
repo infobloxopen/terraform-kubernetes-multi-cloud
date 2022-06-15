@@ -23,3 +23,8 @@ variable "nodes" {
   type        = number
   default     = 2
 }
+
+variable "fqdn" {
+  description = "Specify the fully-qualified domain name of the cluster.  This will be used for creating a zone for the cluster"
+  type        = string
+}
